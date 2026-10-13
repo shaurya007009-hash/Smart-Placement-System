@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Placement System</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <div class="container">
+
+        <h1>Smart Placement System</h1>
+        <p class="subtitle">Find the right job based on your skills</p>
+
+        <!-- LOGIN -->
+        <div id="login-section" class="card">
+            <h2>Student Login</h2>
+
+            <input
+                type="email"
+                id="login-email"
+                placeholder="Enter Email"
+            >
+
+            <input
+                type="password"
+                id="login-password"
+                placeholder="Enter Password"
+            >
+
+            <button onclick="login()">Login</button>
+
+            <p id="login-message"></p>
+
+            <p>
+                Don't have an account?
+                <button class="link-button" onclick="showRegister()">
+                    Register
+                </button>
+            </p>
+        </div>
+
+
+        <!-- REGISTER -->
+        <div id="register-section" class="card hidden">
+            <h2>Student Registration</h2>
+
+            <input
+                type="text"
+                id="register-name"
+                placeholder="Enter Name"
+            >
+
+            <input
+                type="email"
+                id="register-email"
+                placeholder="Enter Email"
+            >
+
+            <input
+                type="password"
+                id="register-password"
+                placeholder="Enter Password"
+            >
+
+            <input
+                type="text"
+                id="register-skills"
+                placeholder="Skills e.g. Python, SQL, DSA"
+            >
+
+            <button onclick="register()">Register</button>
+
+            <p id="register-message"></p>
+
+            <p>
+                Already registered?
+                <button class="link-button" onclick="showLogin()">
+                    Login
+                </button>
+            </p>
+        </div>
+
+
+        <!-- DASHBOARD -->
+        <div id="dashboard-section" class="hidden">
+
+            <div class="card">
+                <h2>Student Dashboard</h2>
+
+                <div id="student-info"></div>
+
+                <button onclick="loadJobs()">View Jobs</button>
+                <button onclick="loadApplications()">
+                    My Applications
+                </button>
+
+                <button onclick="logout()">
+                    Logout
+                </button>
+            </div>
+
+
+            <!-- JOBS -->
+            <div id="jobs-section" class="card hidden">
+
+                <h2>Available Jobs</h2>
+
+                <div id="jobs-list"></div>
+
+            </div>
+
+
+            <!-- APPLICATIONS -->
+            <div id="applications-section" class="card hidden">
+
+                <h2>My Applications</h2>
+
+                <div id="applications-list"></div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <script src="script.js"></script>
+
+</body>
+</html>

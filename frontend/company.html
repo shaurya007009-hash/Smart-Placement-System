@@ -1,0 +1,378 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Company Dashboard | Smart Placement System</title>
+    <link rel="stylesheet" href="style.css">
+
+    <style>
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .form-grid input {
+            width: 100%;
+        }
+
+        .full-width {
+            grid-column: 1 / -1;
+        }
+
+        .message {
+            margin-top: 12px;
+            font-weight: bold;
+        }
+
+        .company-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .job-card h3 {
+            color: #1d4ed8;
+        }
+
+        .application-card {
+            margin-top: 14px;
+            padding: 16px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background: white;
+        }
+
+        .status {
+            font-weight: bold;
+        }
+
+        @media (max-width: 600px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .full-width {
+                grid-column: auto;
+            }
+        }
+    </style>
+</head>
+
+<body>
+<div class="container">
+
+    <h1>Smart Placement System</h1>
+    <p class="subtitle">Company Job & Recruitment Dashboard</p>
+
+    <!-- COMPANY NAME -->
+    <div class="card">
+        <h2>Company Dashboard</h2>
+
+        <label for="company-name">Company Name</label>
+        <input
+            type="text"
+            id="company-name"
+            placeholder="Enter company name, e.g. TCS"
+        >
+
+        <button onclick="loadCompanyDashboard()">
+            View Dashboard
+        </button>
+
+        <button onclick="showPostJobForm()">
+            Post New Job
+        </button>
+
+        <p id="dashboard-message" class="message"></p>
+    </div>
+
+    <!-- POST JOB FORM -->
+    <div id="post-job-section" class="card hidden">
+        <h2>Post a New Job</h2>
+
+        <div class="form-grid">
+            <input id="job-company" type="text"
+                   placeholder="Company Name">
+
+            <input id="job-title" type="text"
+                   placeholder="Job Title">
+
+            <input id="job-location" type="text"
+                   placeholder="Location">
+
+            <input id="job-salary" type="text"
+                   placeholder="Salary (e.g. 6-10 LPA)">
+
+            <input id="job-skills" type="text"
+                   placeholder="Required Skills (Python, SQL, DSA)">
+
+            <input id="job-type" type="text"
+                   placeholder="Job Type (Full Time / Internship)">
+
+            <input id="job-description" class="full-width"
+                   type="text" placeholder="Job Description">
+
+            <input id="job-link" class="full-width"
+                   type="url" placeholder="Application Link (https://...)">
+        </div>
+
+        <button onclick="postJob()">Post Job</button>
+        <button onclick="hidePostJobForm()">Cancel</button>
+
+        <p id="post-job-message" class="message"></p>
+    </div>
+
+    <!-- JOBS AND APPLICANTS -->
+    <div id="company-dashboard" class="hidden">
+
+        <div class="card">
+            <div class="company-header">
+                <h2 id="company-title">Company Jobs</h2>
+                <button onclick="loadCompanyDashboard()">
+                    Refresh Dashboard
+                </button>
+            </div>
+
+            <div id="company-jobs">Loading jobs...</div>
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+const API_URL = "http://127.0.0.1:8000";
+
+function showPostJobForm() {
+    const companyName =
+        document.getElementById("company-name").value.trim();
+
+    document.getElementById("post-job-section")
+        .classList.remove("hidden");
+
+    if (companyName) {
+        document.getElementById("job-company").value = companyName;
+    }
+
+    document.getElementById("post-job-message").innerText = "";
+}
+
+function hidePostJobForm() {
+    document.getElementById("post-job-section")
+        .classList.add("hidden");
+}
+
+async function postJob() {
+    const company = document.getElementById("job-company").value.trim();
+    const job_title = document.getElementById("job-title").value.trim();
+    const location = document.getElementById("job-location").value.trim();
+    const salary = document.getElementById("job-salary").value.trim();
+    const skills_required = document.getElementById("job-skills").value.trim();
+    const job_type = document.getElementById("job-type").value.trim();
+    const description = document.getElementById("job-description").value.trim();
+    const apply_link = document.getElementById("job-link").value.trim();
+
+    const message = document.getElementById("post-job-message");
+
+    if (!company || !job_title || !location || !salary ||
+        !skills_required || !job_type || !description || !apply_link) {
+        message.innerText = "Please fill in all fields.";
+        return;
+    }
+
+    const params = new URLSearchParams({
+        company,
+        job_title,
+        location,
+        salary,
+        skills_required,
+        job_type,
+        description,
+        apply_link
+    });
+
+    message.innerText = "Posting job...";
+
+    try {
+        const response = await fetch(
+            `${API_URL}/jobs?${params.toString()}`,
+            { method: "POST" }
+        );
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            message.innerText = data.detail || "Could not post job.";
+            return;
+        }
+
+        message.innerText =
+            `Job posted successfully! Job ID: ${data.job_id}`;
+
+        document.getElementById("job-title").value = "";
+        document.getElementById("job-location").value = "";
+        document.getElementById("job-salary").value = "";
+        document.getElementById("job-skills").value = "";
+        document.getElementById("job-type").value = "";
+        document.getElementById("job-description").value = "";
+        document.getElementById("job-link").value = "";
+
+        document.getElementById("company-name").value = company;
+
+        await loadCompanyDashboard();
+
+    } catch (error) {
+        console.error(error);
+        message.innerText =
+            "Server connection failed. Check whether backend is running.";
+    }
+}
+
+async function loadCompanyDashboard() {
+    const companyName =
+        document.getElementById("company-name").value.trim();
+
+    const dashboard =
+        document.getElementById("company-dashboard");
+
+    const companyTitle =
+        document.getElementById("company-title");
+
+    const companyJobs =
+        document.getElementById("company-jobs");
+
+    const message =
+        document.getElementById("dashboard-message");
+
+    if (!companyName) {
+        message.innerText = "Please enter a company name.";
+        return;
+    }
+
+    message.innerText = "";
+    dashboard.classList.remove("hidden");
+    companyTitle.innerText = companyName + " — Dashboard";
+    companyJobs.innerText = "Loading jobs...";
+
+    try {
+        const response = await fetch(
+            `${API_URL}/company-dashboard/${encodeURIComponent(companyName)}`
+        );
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            companyJobs.innerText =
+                data.detail || "Unable to load company dashboard.";
+            return;
+        }
+
+        if (!data.jobs || data.jobs.length === 0) {
+            companyJobs.innerText =
+                "No jobs found. Use Post New Job to add one.";
+            return;
+        }
+
+        companyJobs.innerHTML = "";
+
+        data.jobs.forEach(job => {
+            const jobCard = document.createElement("div");
+            jobCard.className = "job-card";
+
+            const heading = document.createElement("h3");
+            heading.textContent = job.job_title || "Untitled Job";
+            jobCard.appendChild(heading);
+
+            const details = [
+                ["Job ID", job.job_id],
+                ["Location", job.location],
+                ["Salary", job.salary],
+                ["Applications", job.total_applications]
+            ];
+
+            details.forEach(([label, value]) => {
+                const p = document.createElement("p");
+                p.textContent = `${label}: ${value ?? "Not provided"}`;
+                jobCard.appendChild(p);
+            });
+
+            const applicationsHeading = document.createElement("h4");
+            applicationsHeading.textContent = "Student Applications";
+            jobCard.appendChild(applicationsHeading);
+
+            if (!job.applications || job.applications.length === 0) {
+                const p = document.createElement("p");
+                p.textContent = "No applications yet.";
+                jobCard.appendChild(p);
+            } else {
+                job.applications.forEach(application => {
+                    const appCard = document.createElement("div");
+                    appCard.className = "application-card";
+
+                    const appInfo = document.createElement("p");
+                    appInfo.textContent =
+                        `Application ID: ${application.application_id} | ` +
+                        `Student ID: ${application.student_id} | ` +
+                        `Status: ${application.status}`;
+                    appCard.appendChild(appInfo);
+
+                    [
+                        ["Shortlist", "Shortlisted"],
+                        ["Select", "Selected"],
+                        ["Reject", "Rejected"]
+                    ].forEach(([label, status]) => {
+                        const button = document.createElement("button");
+                        button.textContent = label;
+                        button.addEventListener("click", () =>
+                            updateStatus(application.application_id, status)
+                        );
+                        appCard.appendChild(button);
+                    });
+
+                    jobCard.appendChild(appCard);
+                });
+            }
+
+            companyJobs.appendChild(jobCard);
+        });
+
+    } catch (error) {
+        console.error(error);
+        companyJobs.innerText =
+            "Server connection failed. Check the backend connection.";
+    }
+}
+
+async function updateStatus(applicationId, newStatus) {
+    try {
+        const params = new URLSearchParams({ status: newStatus });
+
+        const response = await fetch(
+            `${API_URL}/applications/${applicationId}/status?${params.toString()}`,
+            { method: "PUT" }
+        );
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            alert(data.detail || "Unable to update application status.");
+            return;
+        }
+
+        alert(`Application status updated to ${newStatus}.`);
+        await loadCompanyDashboard();
+
+    } catch (error) {
+        console.error(error);
+        alert("Server connection failed.");
+    }
+}
+</script>
+
+</body>
+</html>
